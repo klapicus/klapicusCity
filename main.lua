@@ -6,24 +6,35 @@
 
 -- Vars
 
-local cityWidth = 100
-local cityHeight = 100
-local gridSizeWidth = 9
-local gridSizeHeight = 9
-local gridSpacingX = 10
-local gridSpacingY = 10
+local cityWidth = 10
+local cityHeight = 10
+local gridSizeWidth = 40
+local gridSizeHeight = 40
+local gridSpacingX = 41
+local gridSpacingY = 41
 local cityGrids = {}
-local mode = "look"
+local mode = "edit"
 local zoomScale = .2
+local materials = {}
 
+
+
+
+materials.road = {}
+materials.road.color = 100,100,100
+materials.road.image = nil
+
+
+local selectedMaterial = materials.road
 -- display groups.
 
 local gridGroup = display.newGroup()
 local guiGroup = display.newGroup()
 
 -- displayGroup Functions
-
+ -- grid dragger
 local function gridGroupTouch(event)
+    if mode == "look" then
     local self = gridGroup
     if event.phase == "began" then
 
@@ -40,6 +51,27 @@ local function gridGroupTouch(event)
 
     return true
 
+    end
+end
+
+-- onBlock update
+
+local function onUpdate(x,y)
+
+    print(x,y,"updated baby")
+
+end
+
+
+-- grid changer function
+
+local function gridChanger(x,y,type)
+if type == materials.road then
+    print("change block",x,y,"to road")
+    cityGrids[x][y].gridObj:setFillColor(materials.road.color)
+    end
+cityGrids[x][y].onUpdate()
+
 end
 
 
@@ -50,20 +82,34 @@ for x=1, cityWidth do
      for y=1, cityHeight do
          cityGrids[x][y] = {}
          cityGrids[x][y].gridObj = display.newRect(x * gridSpacingX, y* gridSpacingY,gridSizeWidth,gridSizeHeight)
+         cityGrids[x][y].gridObj:setFillColor(0,255,100)
+         cityGrids[x][y].onUpdate = function()
 
-         -- the event listner
+         print("updated block")
+             onUpdate(x,y)
+
+         end
+         -- the event listner for city grids
+
 
          cityGrids[x][y].touch = function(event)
+             if mode ~= "look" then
+                 if mode == "edit" then
+                     if event.phase == "ended" then
 
+                         gridChanger(x,y,selectedMaterial)
              print(event.phase,x,y)
 
 
+                     end
+                 end
+                 end
          end
          -- end the listener
 
          cityGrids[x][y].realWorld = {x = x * gridSpacingX, y = y* gridSpacingY }
          cityGrids[x][y].gridObj:addEventListener("touch", cityGrids[x][y].touch)
-         cityGrids[x][y].gridObj:setFillColor(math.random(0,255),math.random(0,255),math.random(0,255))
+
          gridGroup:insert(cityGrids[x][y].gridObj)
 
      end
